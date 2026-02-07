@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PRO Betting Tracker | 0–5 Mins</title>
+  <!-- Google Fonts: Sports Style -->
+  <link href="https://fonts.googleapis.com" rel="stylesheet">
+  <style>
+    :root {
+      --pitch-green: #1a472a;
+      --grass-light: #2d5a27;
+      --stadium-dark: #0f172a;
+      --gold: #f59e0b;
+      --win-green: #22c55e;
+      --loss-red: #ef4444;
+      --glass: rgba(255, 255, 255, 0.05);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at top, var(--grass-light), var(--stadium-dark));
+      background-attachment: fixed;
+      color: #e2e8f0;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-family: 'Oswald', sans-serif;
+      text-transform: uppercase;
+      text-align: center;
+      letter-spacing: 2px;
+      color: white;
+      text-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      margin-bottom: 30px;
+    }
+
+    h1 span { color: var(--gold); }
+
+    /* SCOREBOARD SUMMARY */
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    .stat-card {
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      transition: transform 0.3s;
+    }
+
+    .stat-card:hover { transform: translateY(-5px); background: rgba(255,255,255,0.1); }
+    
+    .stat-label { font-size: 0.75rem; text-transform: uppercase; color: #94a3b8; margin-bottom: 5px; }
+    .stat-value { font-family: 'Oswald', sans-serif; font-size: 1.5rem; color: white; }
+
+    /* FORM STYLING */
+    .form-box {
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      padding: 25px;
+      border-radius: 16px;
+      margin-bottom: 30px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    h3 { font-family: 'Oswald', sans-serif; margin-top: 0; color: var(--gold); }
+
+    .input-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    input, select {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 12px;
+      border-radius: 8px;
+      color: white;
+      flex: 1;
+      min-width: 140px;
+    }
+
+    input:focus { outline: 2px solid var(--gold); border-color: transparent; }
+
+    button {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: 0.3s;
+    }
+
+    button:hover { filter: brightness(1.2); transform: scale(1.02); }
+
+    /* TABLE STYLING */
+    .table-container {
+      overflow-x: auto;
+      background: var(--glass);
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th {
+      background: rgba(255,255,255,0.05);
+      padding: 15px;
+      font-family: 'Oswald', sans-serif;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+
+    td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+    tr:hover { background: rgba(255,255,255,0.02); }
+
+    .profit { color: var(--win-green); font-weight: bold; }
+    .loss { color: var(--loss-red); font-weight: bold; }
+    .badge-win { background: rgba(34, 197, 94, 0.2); color: #4ade80; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; }
+    .badge-loss { background: rgba(239, 68, 68, 0.2); color: #f87171; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; }
+
+    @media (max-width: 600px) {
+      .input-group input, .input-group select { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>⚽ Football <span>Tracker</span> PRO</h1>
+
+  <!-- SCOREBOARD -->
+  <div class="summary">
+    <div class="stat-card">
+      <div class="stat-label">Total Fixtures</div>
+      <div class="stat-value" id="totalBets">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Profit</div>
+      <div class="stat-value" style="color: var(--win-green)">₦<span id="totalProfit">0.00</span></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Withdrawn</div>
+      <div class="stat-value" style="color: var(--gold)">₦<span id="totalWithdrawn">0.00</span></div>
+    </div>
+    <div class="stat-card" style="border: 1px solid var(--gold)">
+      <div class="stat-label">Net Balance</div>
+      <div class="stat-value" id="netBalance">0.00</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Win Rate</div>
+      <div class="stat-value" id="winRate">0%</div>
+    </div>
+  </div>
+
+  <!-- ADD BET SECTION -->
+  <div class="form-box">
+    <h3><span style="margin-right: 10px;">📋</span> Log New Match</h3>
+    <div class="input-group">
+      <input type="date" id="date">
+      <input type="text" id="match" placeholder="Team A vs Team B">
+      <input type="number" id="prob" placeholder="Probability %">
+      <input type="number" id="odds" placeholder="Odds" step="0.01">
+      <input type="number" id="stake" placeholder="Stake (₦)">
+      <select id="result">
+        <option value="">Full Time Result</option>
+        <option value="Win">✅ Win (No Goal 0-5')</option>
+        <option value="Loss">❌ Loss (Goal Scored)</option>
+      </select>
+      <button onclick="addBet()">Post Match</button>
+    </div>
+  </div>
+
+  <!-- BET HISTORY -->
+  <h3 style="margin-left: 10px;">Match History</h3>
+  <div class="table-container">
+    <table id="betTable">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Fixture</th>
+          <th>Prob %</th>
+          <th>Odds</th>
+          <th>Stake</th>
+          <th>Result</th>
+          <th>P/L</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <br><br>
+
+  <!-- WITHDRAWAL SECTION -->
+  <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px;">
+    <div class="form-box">
+      <h3>🏧 Cash Out</h3>
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <input type="date" id="wDate">
+        <input type="number" id="wAmount" placeholder="Amount (₦)">
+        <input type="text" id="wNote" placeholder="Reference Note">
+        <button onclick="addWithdrawal()" style="background: #64748b;">Record Payout</button>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <table id="withdrawTable">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Amount</th>
+            <th>Note</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+    // JS remains identical to your logic but with slightly updated class naming for badges
+    let bets = JSON.parse(localStorage.getItem("bets")) || [];
+    let withdrawals = JSON.parse(localStorage.getItem("withdrawals")) || [];
+
+    function saveData() {
+      localStorage.setItem("bets", JSON.stringify(bets));
+      localStorage.setItem("withdrawals", JSON.stringify(withdrawals));
+    }
+
+    function addBet() {
+      const date = document.getElementById("date").value;
+      const match = document.getElementById("match").value;
+      const prob = document.getElementById("prob").value;
+      const odds = document.getElementById("odds").value;
+      const stake = document.getElementById("stake").value;
+      const result = document.getElementById("result").value;
+
+      if (!date || !match || !prob || !odds || !stake || !result) {
+        alert("Enter match details"); return;
+      }
+
+      let profit = (result === "Win") ? (stake * odds - stake) : -stake;
+
+      bets.push({ date, match, prob, odds, stake, result, profit });
+      saveData(); render(); clearBetForm();
+    }
+
+    function addWithdrawal() {
+      const date = document.getElementById("wDate").value;
+      const amount = document.getElementById("wAmount").value;
+      const note = document.getElementById("wNote").value;
+
+      if (!date || !amount) { alert("Fill date and amount"); return; }
+
+      withdrawals.push({ date, amount: parseFloat(amount), note });
+      saveData(); render(); clearWithdrawForm();
+    }
+
+    function render() {
+      renderBets();
+      renderWithdrawals();
+      updateSummary();
+    }
+
+    function renderBets() {
+      const tbody = document.querySelector("#betTable tbody");
+      tbody.innerHTML = "";
+      bets.forEach(b => {
+        const row = tbody.insertRow();
+        row.insertCell(0).innerText = b.date;
+        row.insertCell(1).innerText = b.match;
+        row.insertCell(2).innerText = b.prob + "%";
+        row.insertCell(3).innerText = b.odds;
+        row.insertCell(4).innerText = "₦" + b.stake;
+        
+        const resCell = row.insertCell(5);
+        resCell.innerHTML = `<span class="${b.result === 'Win' ? 'badge-win' : 'badge-loss'}">${b.result}</span>`;
+
+        const pl = row.insertCell(6);
+        pl.innerText = (b.profit >= 0 ? "+" : "") + b.profit.toFixed(2);
+        pl.className = b.profit >= 0 ? "profit" : "loss";
+      });
+    }
+
+    function renderWithdrawals() {
+      const tbody = document.querySelector("#withdrawTable tbody");
+      tbody.innerHTML = "";
+      withdrawals.forEach(w => {
+        const row = tbody.insertRow();
+        row.insertCell(0).innerText = w.date;
+        row.insertCell(1).innerText = "₦" + w.amount.toFixed(2);
+        row.insertCell(2).innerText = w.note || "-";
+      });
+    }
+
+    function updateSummary() {
+      const totalBets = bets.length;
+      const wins = bets.filter(b => b.result === "Win").length;
+      const totalProfit = bets.reduce((sum, b) => sum + b.profit, 0);
+      const totalWithdrawn = withdrawals.reduce((sum, w) => sum + w.amount, 0);
+      const netBalance = totalProfit - totalWithdrawn;
+      const winRate = totalBets > 0 ? ((wins / totalBets) * 100).toFixed(1) : 0;
+
+      document.getElementById("totalBets").innerText = totalBets;
+      document.getElementById("totalProfit").innerText = totalProfit.toLocaleString();
+      document.getElementById("totalWithdrawn").innerText = totalWithdrawn.toLocaleString();
+      document.getElementById("netBalance").innerText = "₦" + netBalance.toLocaleString();
+      document.getElementById("winRate").innerText = winRate + "%";
+    }
+
+    function clearBetForm() {
+      document.getElementById("match").value = "";
+      document.getElementById("prob").value = "";
+      document.getElementById("odds").value = "";
+      document.getElementById("stake").value = "";
+      document.getElementById("result").value = "";
+    }
+
+    function clearWithdrawForm() {
+      document.getElementById("wDate").value = "";
+      document.getElementById("wAmount").value = "";
+      document.getElementById("wNote").value = "";
+    }
+
+    render();
+  </script>
+</body>
+</html>
